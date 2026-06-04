@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.srt
+*.wav
+*.mp3
+*.mp4
+*.flac
+*.ogg
+Qwen/
+docs/
+examples/
+example/
+FireRedVAD/
+.gradio/
+abbreviations.json
