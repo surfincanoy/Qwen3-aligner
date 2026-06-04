@@ -38,9 +38,7 @@ def build_app():
 
     with gr.Blocks(title="Qwen3 音频处理工坊") as app:
         gr.Markdown("# 🎧 Qwen3 音频处理工坊")
-        gr.Markdown(
-            "基于 Qwen3-ASR 与 Qwen3-ForcedAligner 的音频处理工具"
-        )
+        gr.Markdown("基于 Qwen3-ASR 与 Qwen3-ForcedAligner 的音频处理工具")
 
         lang_radio = gr.Radio(
             choices=list(LANG.keys()),
@@ -49,32 +47,27 @@ def build_app():
         )
 
         with gr.Tabs():
-            with gr.TabItem(t("tab_main"), id="main") as tab_main:
+            with gr.TabItem(t("tab_main"), id="main"):
                 comps, label_map = create_main_tab(run_transcribe, run_align)
                 for k, v in comps.items():
                     all_comps.append(v)
                     all_i18n_keys.append(label_map[k])
 
-            with gr.TabItem(t("tab_fixsrt"), id="fixsrt") as tab_fixsrt:
+            with gr.TabItem(t("tab_fixsrt"), id="fixsrt"):
                 comps, label_map = create_fixsrt_tab(run_fixsrt)
                 for k, v in comps.items():
                     all_comps.append(v)
                     all_i18n_keys.append(label_map[k])
 
-        all_comps.extend([tab_main, tab_fixsrt])
-        all_i18n_keys.extend(["tab_main", "tab_fixsrt"])
-
         lang_radio.change(
-            switch_lang,
-            lang_radio,
-            all_comps,
+            fn=switch_lang,
+            inputs=lang_radio,
+            outputs=list(all_comps),
             js="""(lang) => {
-                const isCN = lang === '中文';
                 const tabs = document.querySelectorAll('[role="tab"]');
-                if (tabs.length >= 2) {
-                    tabs[0].textContent = isCN ? '🚀 快速转录/对齐' : '🚀 Quick Transcribe/Align';
-                    tabs[1].textContent = isCN ? '🔧 SRT 修复' : '🔧 SRT Fix';
-                }
+                const labels = [lang === '中文' ? '🚀 快速转录/对齐' : '🚀 Quick Transcribe/Align',
+                               lang === '中文' ? '🔧 SRT 修复' : '🔧 SRT Fix'];
+                tabs.forEach((btn, i) => { if (i < 2) btn.textContent = labels[i]; });
             }""",
         )
 
