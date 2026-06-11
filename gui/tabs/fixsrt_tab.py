@@ -1,9 +1,23 @@
+# Copyright 2026 Alibaba Cloud (Qwen3-ASR)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import gradio as gr
 
-from gui.i18n import t
+from gui.i18n import LANGUAGES, t
 
 
-def create_fixsrt_tab(run_fixsrt):
+def create_fixsrt_tab(run_fixsrt, global_fa2):
     comps = {}
     label_map = {}
 
@@ -18,112 +32,87 @@ def create_fixsrt_tab(run_fixsrt):
     with gr.Row():
         comps["lang_dropdown"] = gr.Dropdown(
             label=t("lang_label"),
-            choices=["English", "Japanese", "Chinese"],
+            choices=LANGUAGES,
             value="English",
+            scale=2,
         )
         label_map["lang_dropdown"] = "lang_label"
 
-        comps["indices_input"] = gr.Textbox(
-            label=t("bad_indices"), placeholder="37, 38, 39"
+        comps["resegment_checkbox"] = gr.Checkbox(
+            label=t("resegment_label"), value=False,
+            elem_classes="resegment-label",
         )
-        label_map["indices_input"] = "bad_indices"
+        label_map["resegment_checkbox"] = "resegment_label"
 
-    gr.Markdown("*" + t("model_hint_fix") + "*")
+    with gr.Row():
+        comps["fix_btn"] = gr.Button(t("btn_fix"), variant="primary")
+        label_map["fix_btn"] = "btn_fix"
 
-    comps["fix_btn"] = gr.Button(t("btn_fix"), variant="primary")
-    label_map["fix_btn"] = "btn_fix"
+        comps["download_fixed"] = gr.DownloadButton(
+            label=t("btn_download_fixed"), visible=False
+        )
+        label_map["download_fixed"] = "btn_download_fixed"
 
-    comps["log_output"] = gr.Textbox(
-        label=t("log_output"),
-        lines=4,
+    fix_status = gr.Markdown(visible=False)
+
+    comps["srt_output"] = gr.DataFrame(
+        elem_id="srt-table-fix",
+        headers=["#", "Start", "End", "Text"],
+        datatype=["number", "str", "str", "str"],
+        column_count=4,
         interactive=False,
-        placeholder=t("placeholder_log"),
-    )
-    label_map["log_output"] = "log_output"
-
-    comps["srt_output"] = gr.Textbox(
         label=t("srt_preview"),
-        lines=10,
-        interactive=False,
-        placeholder=t("placeholder_srt"),
     )
     label_map["srt_output"] = "srt_preview"
 
-    comps["download_fixed"] = gr.DownloadButton(
-        t("btn_download_fixed"), visible=False
-    )
-    label_map["download_fixed"] = "btn_download_fixed"
-
-    def fix_click(file, srt, lang, indices_str):
-        if not file:
-            yield [
-                gr.update(value=t("no_audio")),
-                gr.update(value=""),
-                gr.update(visible=False),
-            ]
-            return
-        if not srt:
-            yield [
-                gr.update(value=t("no_srt")),
-                gr.update(value=""),
-                gr.update(visible=False),
-            ]
-            return
-        if not indices_str or not indices_str.strip():
-            yield [
-                gr.update(value=t("no_indices")),
-                gr.update(value=""),
-                gr.update(visible=False),
-            ]
-            return
-        try:
-            cleaned = indices_str.replace("[", "").replace("]", "")
-            bad_indices = [
-                int(x.strip()) for x in cleaned.split(",") if x.strip().isdigit()
-            ]
-            if not bad_indices:
-                yield [
-                    gr.update(value=t("no_indices")),
-                    gr.update(value=""),
-                    gr.update(visible=False),
-                ]
-                return
-        except ValueError:
-            yield [
-                gr.update(value="无效的行号格式"),
-                gr.update(value=""),
-                gr.update(visible=False),
-            ]
-            return
-
-        yield [
-            gr.update(value=t("fixing")),
-            gr.update(value=""),
+    def show_fixing():
+        return [
+            gr.update(value=[]),
+            gr.update(value="⏳ " + t("fixing"), visible=True),
             gr.update(visible=False),
         ]
-        result, error = run_fixsrt(file.name, srt.name, bad_indices, lang)
-        if error:
-            yield [
-                gr.update(value=""),
-                gr.update(value=t("fix_fail") + ": " + error),
+
+    def do_fix(file, srt, lang, resegment, fa2):
+        if not file:
+            return [
+                gr.update(value=[]),
+                gr.update(value="⚠️ " + t("no_audio"), visible=True),
                 gr.update(visible=False),
             ]
-        else:
-            yield [
-                gr.update(value=t("fix_done")),
-                gr.update(value=result),
-                gr.update(value=result, visible=True),
+        if not srt:
+            return [
+                gr.update(value=[]),
+                gr.update(value="⚠️ " + t("no_srt"), visible=True),
+                gr.update(visible=False),
             ]
 
+        attn_impl = "flash_attention_2" if fa2 else None
+        result, out_path, df_rows, error = run_fixsrt(file.name, srt.name, lang, resegment=resegment, attn_implementation=attn_impl)
+        if error:
+            return [
+                gr.update(value=[]),
+                gr.update(value="❌ " + t("fix_fail") + ": " + error, visible=True),
+                gr.update(visible=False),
+            ]
+        return [
+            gr.update(value=df_rows),
+            gr.update(value="✅ " + t("fix_done"), visible=True),
+            gr.update(value=out_path, visible=True),
+        ]
+
     comps["fix_btn"].click(
-        fix_click,
+        show_fixing,
+        outputs=[comps["srt_output"], fix_status, comps["download_fixed"]],
+    ).then(
+        do_fix,
         inputs=[
             comps["audio_input"],
             comps["srt_file"],
             comps["lang_dropdown"],
-            comps["indices_input"],
+            comps["resegment_checkbox"],
+            global_fa2,
         ],
-        outputs=[comps["log_output"], comps["srt_output"], comps["download_fixed"]],
+        outputs=[comps["srt_output"], fix_status, comps["download_fixed"]],
     )
 
     return comps, label_map

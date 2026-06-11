@@ -1,4 +1,17 @@
-import os
+# Copyright 2026 Alibaba Cloud (Qwen3-ASR)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import re
 
 
@@ -47,15 +60,53 @@ def load_srt(srt_path: str) -> list[dict]:
     return entries
 
 
-def save_srt_entries(entries: list[dict], output_path: str):
-    with open(output_path, "w", encoding="utf-8") as f:
-        for entry in entries:
-            start = format_time(entry["start_time"])
-            end = format_time(entry["end_time"])
-            f.write(f"{entry['index']}\n")
-            f.write(f"{start} --> {end}\n")
-            f.write(f"{entry['text']}\n\n")
-    print(f"SRT saved: {output_path}")
+def sentences_to_srt(sentences: list[dict]) -> str:
+    lines = []
+    for i, sent in enumerate(sentences, 1):
+        start = format_time(sent["start_time"])
+        end = format_time(sent["end_time"])
+        lines.append(f"{i}\n{start} --> {end}\n{sent['text']}\n")
+    return "\n".join(lines)
+
+
+def merge_sentences(sentences: list[dict]) -> list[dict]:
+    if len(sentences) < 2:
+        return list(sentences)
+    result = [dict(s) for s in sentences]
+    changed = True
+    while changed:
+        changed = False
+        i = 0
+        while i < len(result):
+            s = result[i]
+            text = s.get("text", "").strip()
+
+            # Merge right: sentence ending with ? (merge left from next's perspective)
+            if i + 1 < len(result):
+                nxt = result[i + 1]
+                nxt_text = nxt.get("text", "").strip()
+                if nxt_text.endswith("?") and len(nxt_text) < 20:
+                    s["text"] = text + " " + nxt_text
+                    s["end_time"] = nxt["end_time"]
+                    if "words" in s and "words" in nxt:
+                        s["words"].extend(nxt["words"])
+                    result.pop(i + 1)
+                    changed = True
+                    continue
+
+            # Merge right: comma + short
+            if text.endswith(",") and len(text) < 20 and i + 1 < len(result):
+                nxt = result[i + 1]
+                s["text"] = text + " " + nxt["text"].strip()
+                s["end_time"] = nxt["end_time"]
+                if "words" in s and "words" in nxt:
+                    s["words"].extend(nxt["words"])
+                result.pop(i + 1)
+                changed = True
+                continue
+
+            i += 1
+    return result
 
 
 def sentences_to_srt(sentences: list[dict]) -> str:
@@ -67,30 +118,62 @@ def sentences_to_srt(sentences: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def sentences_to_entries(sentences: list[dict]) -> list[dict]:
+def sentences_to_entries(sentences: list[dict], min_duration: float = 0.0) -> list[dict]:
+    """Convert aligned sentences to SRT entries.
+
+    Broken entries (empty text or zero duration) are NOT merged into
+    the previous entry; they get a minimum duration and appear as
+    separate subtitles so the text is never corrupted by concatenation.
+    """
+    if not sentences:
+        return []
+
+    merged: list[dict] = []
+    for s in sentences:
+        start = float(s.get("start_time", 0.0))
+        end = float(s.get("end_time", start))
+        text = (s.get("text", "") or "").strip()
+        duration = max(0.0, end - start)
+
+        is_broken = (not text) or (end <= start and min_duration == 0)
+
+        if is_broken:
+            if end <= start:
+                end = start + max(0.2, min_duration)
+            if not text:
+                continue  # drop completely empty entries
+            merged.append({"start_time": start, "end_time": end, "text": text})
+        else:
+            merged.append({"start_time": start, "end_time": end, "text": text})
+
+    # Fix CTC-compressed entries (too short per character).
+    # Extend end_time to a more readable duration without
+    # overlapping the next entry.
+    for i, entry in enumerate(merged):
+        start = entry["start_time"]
+        end = entry["end_time"]
+        text = entry["text"]
+        clean = re.sub(r"[^\w]", "", text)
+        n = len(clean)
+        if n >= 2:
+            dur = end - start
+            if dur / n < 0.1:  # <100ms/char => compressed
+                desired = max(0.5, n * 0.25)  # at least 500ms or 250ms/char
+                new_end = start + desired
+                if i + 1 < len(merged):
+                    new_end = min(new_end, merged[i + 1]["start_time"])
+                if new_end > end + 1e-6:
+                    entry["end_time"] = new_end
+
     return [
         {
             "index": i + 1,
-            "start_time": s["start_time"],
-            "end_time": s["end_time"],
-            "text": s["text"],
+            "start_time": m["start_time"],
+            "end_time": m["end_time"],
+            "text": m["text"],
         }
-        for i, s in enumerate(sentences)
+        for i, m in enumerate(merged)
     ]
 
 
-def parse_bad_indices(tokens: list[str]) -> list[int]:
-    combined = ",".join(tokens)
-    combined = combined.replace("[", "").replace("]", "")
-    indices = []
-    for num in combined.split(","):
-        num = num.strip()
-        if num.isdigit():
-            indices.append(int(num))
-    return sorted(set(indices))
 
-
-def join_text_segments(text_segments: list[str], language: str) -> str:
-    if language in {"Chinese", "Japanese", "Korean", "Thai"}:
-        return "".join(text_segments)
-    return " ".join(text_segments)

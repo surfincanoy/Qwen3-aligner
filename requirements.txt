@@ -97,8 +97,8 @@ sympy==1.13.1
 threadpoolctl==3.6.0
 tokenizers==0.22.2
 tomlkit==0.13.3
-torch @ file:///mnt/D/python/torch-2.6.0+cu124-cp312-cp312-linux_x86_64.whl
-torchaudio @ file:///mnt/D/python/torchaudio-2.6.0+cu124-cp312-cp312-linux_x86_64.whl
+torch
+torchaudio
 torchcodec==0.11.0
 tqdm==4.67.3
 transformers==4.57.6
@@ -110,3 +110,4 @@ tzdata==2025.3
 urllib3==2.6.3
 uvicorn==0.40.0
 werkzeug==3.1.5
+flash-attn 

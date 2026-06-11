@@ -1,0 +1,15 @@
+Qwen3-Aligner
+Copyright (c) 2026 AI4-Audio
+
+This software includes or depends on the following open source components:
+
+---
+
+- **Qwen3-ASR** (https://github.com/QwenLM/Qwen3-ASR)
+- **Qwen3-ForcedAligner** (https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B)
+  Copyright 2026 Alibaba Cloud
+  Licensed under the Apache License, Version 2.0.
+
+- **FireRedVAD** (https://github.com/FireRedTeam/FireRedVAD)
+  Copyright FireRedTeam
+  Licensed under the Apache License, Version 2.0.

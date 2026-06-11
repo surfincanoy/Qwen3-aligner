@@ -1,29 +1,37 @@
+# Copyright 2026 Alibaba Cloud (Qwen3-ASR)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import contextlib
 import os
-import tempfile
 
-import numpy as np
-import soundfile as sf
-import torch
 import torchaudio
+from tqdm import tqdm
 
-from qwen3_aligner.audio_utils import WAV_SAMPLE_RATE, clear_memory_cache
+from qwen3_aligner.audio_utils import (
+    WAV_SAMPLE_RATE,
+    clear_memory_cache,
+    create_vad_model,
+    parse_vad_result,
+    write_audio_temp,
+)
 from qwen3_aligner.model_loader import load_asr_model
 
 try:
-    from fireredvad import FireRedVad, FireRedVadConfig
+    import fireredvad
     HAS_VAD = True
 except ImportError:
     HAS_VAD = False
-
-
-def _get_vad_model():
-    vad_config = FireRedVadConfig(
-        use_gpu=False, smooth_window_size=5, speech_threshold=0.4,
-        min_speech_frame=20, max_speech_frame=2000, min_silence_frame=20,
-        merge_silence_frame=0, extend_speech_frame=0, chunk_max_frame=30000,
-    )
-    return FireRedVad.from_pretrained("./FireRedVAD", vad_config)
 
 
 def load_and_segment_audio(audio_path: str, segment_length_s: int = 180) -> list[dict]:
@@ -37,25 +45,15 @@ def load_and_segment_audio(audio_path: str, segment_length_s: int = 180) -> list
     if waveform.shape[0] > 1:
         waveform = waveform.mean(dim=0, keepdim=True)
 
-    tmp_path = None
+    tmp_path = write_audio_temp(waveform)
     try:
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            tmp_path = tmp.name
-            audio_np = waveform.numpy().flatten()
-            sf.write(tmp_path, audio_np, WAV_SAMPLE_RATE)
-
         if not HAS_VAD:
             raise RuntimeError("fireredvad is required for audio segmentation")
 
         print("Using FireRedVAD for speech detection...")
-        vad = _get_vad_model()
+        vad = create_vad_model()
         result = vad.detect(tmp_path)
-        if isinstance(result, tuple):
-            speech_timestamps = (
-                result[0].get("timestamps", []) if hasattr(result[0], "get") else []
-            )
-        else:
-            speech_timestamps = result.get("timestamps", [])
+        speech_timestamps = parse_vad_result(result)
 
         chunks = []
         total_duration = duration
@@ -87,14 +85,13 @@ def load_and_segment_audio(audio_path: str, segment_length_s: int = 180) -> list
                 os.remove(tmp_path)
 
 
-def _audio_segment_to_numpy(seg_tensor) -> np.ndarray:
+def _audio_segment_to_numpy(seg_tensor):
     return seg_tensor.numpy().flatten()
 
 
 def transcribe_audio(chunks: list, model, language: str = "Japanese") -> list[dict]:
     results = []
-    for i, chunk in enumerate(chunks):
-        print(f"Processing chunk {i + 1}/{len(chunks)} (offset: {chunk['offset']:.1f}s)")
+    for chunk in tqdm(chunks, unit="chunk", desc="Transcribing"):
         samples = _audio_segment_to_numpy(chunk["audio"])
         audio_input = (samples, WAV_SAMPLE_RATE)
         result = model.transcribe(audio_input, language=language, context=None)
@@ -103,7 +100,6 @@ def transcribe_audio(chunks: list, model, language: str = "Japanese") -> list[di
         text = getattr(result, "text", "")
         lang = getattr(result, "language", language)
         results.append({"text": text, "lang": lang, "offset": chunk["offset"]})
-        print(f"  Text length: {len(text)} chars")
         del samples, audio_input
     return results
 
@@ -118,3 +114,6 @@ def run_transcribe(audio_path: str, language: str, model_size: str = "0.6B") -> 
     clear_memory_cache()
     full_text = " ".join([r["text"] for r in results])
     return full_text, results
+
+
+

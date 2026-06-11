@@ -1,3 +1,17 @@
+# Copyright 2026 Alibaba Cloud (Qwen3-ASR)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import gc
 import io
 import os
@@ -9,11 +23,15 @@ import librosa
 import numpy as np
 import soundfile as sf
 import torch
-from silero_vad import get_speech_timestamps
+
 
 WAV_SAMPLE_RATE = 16000
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv", ".webm", ".m4v"}
+
+_PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_VAD_DIR = os.path.join(_PROJECT_DIR, "FireRedVAD")
+
 
 
 def load_audio(file_path: str) -> np.ndarray:
@@ -93,85 +111,33 @@ def ensure_audio(audio_path: str) -> str:
     return audio_path
 
 
-def process_vad(
-    wav: np.ndarray,
-    worker_vad_model,
-    segment_threshold_s: int = 120,
-    max_segment_threshold_s: int = 180,
-) -> list[tuple[int, int, np.ndarray]]:
-    try:
-        vad_params = {
-            "sampling_rate": WAV_SAMPLE_RATE,
-            "return_seconds": False,
-            "min_speech_duration_ms": 1500,
-            "min_silence_duration_ms": 500,
-        }
-        speech_timestamps = get_speech_timestamps(wav, worker_vad_model, **vad_params)
-        if not speech_timestamps:
-            raise ValueError("No speech segments detected by VAD.")
-
-        potential_split_points_s = {0, len(wav)}
-        for st in speech_timestamps:
-            potential_split_points_s.add(st["start"])
-        sorted_potential_splits = sorted(potential_split_points_s)
-
-        final_split_points_s = {0, len(wav)}
-        segment_threshold_samples = segment_threshold_s * WAV_SAMPLE_RATE
-        target_time = segment_threshold_samples
-        while target_time < len(wav):
-            closest_point = min(
-                sorted_potential_splits, key=lambda p: abs(p - target_time)
-            )
-            final_split_points_s.add(closest_point)
-            target_time += segment_threshold_samples
-        final_ordered_splits = sorted(final_split_points_s)
-
-        max_segment_threshold_samples = max_segment_threshold_s * WAV_SAMPLE_RATE
-        new_split_points = [0]
-
-        for i in range(1, len(final_ordered_splits)):
-            start = final_ordered_splits[i - 1]
-            end = final_ordered_splits[i]
-            segment_length = end - start
-            if segment_length <= max_segment_threshold_samples:
-                new_split_points.append(end)
-            else:
-                num_subsegments = int(
-                    np.ceil(segment_length / max_segment_threshold_samples)
-                )
-                subsegment_length = segment_length / num_subsegments
-                for j in range(1, num_subsegments):
-                    split_point = start + j * subsegment_length
-                    new_split_points.append(split_point)
-                new_split_points.append(end)
-
-        segmented_wavs = []
-        for i in range(len(new_split_points) - 1):
-            start_sample = int(new_split_points[i])
-            end_sample = int(new_split_points[i + 1])
-            segmented_wavs.append(
-                (start_sample, end_sample, wav[start_sample:end_sample])
-            )
-        return segmented_wavs
-    except Exception:
-        segmented_wavs = []
-        total_samples = len(wav)
-        max_chunk_size_samples = max_segment_threshold_s * WAV_SAMPLE_RATE
-        for start_sample in range(0, total_samples, max_chunk_size_samples):
-            end_sample = min(start_sample + max_chunk_size_samples, total_samples)
-            segment = wav[start_sample:end_sample]
-            if len(segment) > 0:
-                segmented_wavs.append((start_sample, end_sample, segment))
-        return segmented_wavs
-
-
 def clear_memory_cache():
     gc.collect()
     if torch.cuda.is_available():
+        torch.cuda.synchronize()
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
 
 
-def save_audio_file(wav: np.ndarray, file_path: str):
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    sf.write(file_path, wav, WAV_SAMPLE_RATE)
+def write_audio_temp(wav) -> str:
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        audio_np = wav.numpy().flatten() if hasattr(wav, "numpy") else wav.flatten()
+        sf.write(tmp.name, audio_np, WAV_SAMPLE_RATE)
+        return tmp.name
+
+
+def create_vad_model():
+    from fireredvad import FireRedVad, FireRedVadConfig
+
+    config = FireRedVadConfig(
+        use_gpu=False, smooth_window_size=5, speech_threshold=0.4,
+        min_speech_frame=20, max_speech_frame=2000, min_silence_frame=20,
+        merge_silence_frame=0, extend_speech_frame=0, chunk_max_frame=30000,
+    )
+    return FireRedVad.from_pretrained(_VAD_DIR, config)
+
+
+def parse_vad_result(result) -> list:
+    if isinstance(result, tuple):
+        return result[0].get("timestamps", []) if hasattr(result[0], "get") else []
+    return result.get("timestamps", [])

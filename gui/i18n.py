@@ -1,17 +1,36 @@
-import gradio as gr
+# Copyright 2026 Alibaba Cloud (Qwen3-ASR)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+LANGUAGES = [
+    "English", "Chinese", "Cantonese", "French", "German",
+    "Italian", "Japanese", "Korean", "Portuguese", "Russian", "Spanish",
+]
 
 LANG = {
     "中文": {
-        "tab_main": "🚀 快速转录/对齐",
+        "tab_main": "🚀 转录/对齐",
         "tab_fixsrt": "🔧 SRT 修复",
-        "step1_title": "Step 1: 音频转录",
-        "step2_title": "Step 2: 生成字幕（可选）",
+        "tab_batch": "📦 批量匹配",
+        "step1_title": "## Step 1: 音频转录",
+        "step2_title": "## Step 2: 文稿匹配",
         "audio_input": "拖拽或点击上传 音频/视频 文件",
-        "lang_label": "识别语言",
-        "model_label": "ASR 模型",
+        "lang_label": "识别语言 / Recognition Language",
+        "model_label": "ASR 模型 / ASR Model",
         "model_fast": "⚡快速 0.6B",
         "model_precise": "🎯精确 1.7B",
         "btn_transcribe": "▶ 开始转录",
+        "btn_save_text": "💾 保存文本",
         "transcribing": "正在转录...",
         "transcribe_done": "转录完成",
         "transcribe_fail": "转录失败",
@@ -25,7 +44,7 @@ LANG = {
         "srt_preview": "SRT 预览",
         "btn_download_srt": "💾 下载 SRT",
         "srt_input": "上传 SRT 文件",
-        "bad_indices": "错误行号（逗号分隔，如 37,38,39）",
+        "bad_indices": "错误行号 / Bad Line Numbers（逗号分隔，如 37,38,39）",
         "btn_fix": "🔧 修复",
         "fixing": "正在修复...",
         "fix_done": "修复完成",
@@ -38,21 +57,62 @@ LANG = {
         "no_text": "请输入或粘贴文本内容",
         "no_srt": "请上传 SRT 文件",
         "no_indices": "请输入错误行号",
-        "model_hint_align": "使用 Qwen3-ForcedAligner-0.6B 自动对齐",
-        "model_hint_fix": "使用 Qwen3-ForcedAligner-0.6B 重新对齐",
-        "lang_switch": "界面语言 / Language",
+        "model_hint_align": "",
+        "model_hint_fix": "",
+        "lang_switch": "界面语言",
+        "batch_title": "## 批量文稿匹配 <small style='font-weight:normal;color:#e74c3c;font-size:0.7em'>（请上传同名文本文件和音/视频文件）</small>",
+        "batch_txt_label": "上传 TXT 文件（多个）",
+        "batch_audio_label": "上传 音频/视频 文件（多个）",
+        "batch_hint": "",
+        "btn_batch_align": "📦 批量对齐全部",
+        "batch_running": "正在进行批量对齐...",
+        "batch_done": "批量对齐完成！{success}/{total} 个成功",
+        "batch_fail": "批量对齐失败",
+        "batch_file": "文件",
+        "batch_status": "状态",
+        "batch_success": "✅ 成功",
+        "batch_error": "❌ 失败",
+        "btn_download_zip": "📥 下载全部 SRT",
+        "batch_no_txt": "请先上传 TXT 文件",
+        "batch_no_audio": "请先上传音频文件",
+        "batch_no_match": "未找到匹配的 TXT 和音频对",
+        "tab_batch_asr": "📦 批量转录/对齐",
+        "batch_asr_title": "## 批量转录 + 字幕生成",
+        "batch_asr_audio_label": "上传 音频/视频 文件（多个）",
+        "btn_batch_asr": "▶ 批量转写全部",
+        "batch_asr_results_label": "批量转写结果",
+        "batch_asr_running": "正在进行批量转写与字幕生成...",
+        "batch_asr_done": "批量完成！{success}/{total} 个成功",
+        "fa2_checkbox": "Flash Attention加速",
+        "fa2_hint": '<small style="color:#888">Flash Attention（最低需要 NVIDIA Turing SM 7.5 架构）</small>',
+        "fa2_req": "最低要求：NVIDIA Turing SM 7.5 架构（部分20系）",
+        "fa2_supported": "您的显卡支持此功能，建议开启",
+        "fa2_unsupported": "您的显卡不支持此功能，切勿开启",
+        "resegment_label": "字幕重新断句",
+        "tab_batch_fixsrt": "📦 批量 SRT 修复",
+        "batch_fixsrt_title": "## 批量 SRT 修复 <small style='font-weight:normal;color:#e74c3c;font-size:0.7em'>（请上传同名SRT和音/视频文件）</small>",
+        "batch_fixsrt_srt_label": "上传 SRT 文件（多个）",
+        "batch_fixsrt_audio_label": "上传 音频/视频 文件（多个）",
+        "btn_batch_fixsrt": "📦 批量修复全部",
+        "batch_fixsrt_running": "正在进行批量 SRT 修复...",
+        "batch_fixsrt_done": "批量修复完成！{success}/{total} 个成功",
+        "batch_fixsrt_no_srt": "请先上传 SRT 文件",
+        "batch_fixsrt_no_audio": "请先上传音频文件",
+        "batch_fixsrt_no_match": "未找到匹配的 SRT 和音频对",
     },
     "English": {
-        "tab_main": "🚀 Quick Transcribe/Align",
+        "tab_main": "🚀 Transcribe/Align",
         "tab_fixsrt": "🔧 SRT Fix",
-        "step1_title": "Step 1: Transcribe Audio",
-        "step2_title": "Step 2: Generate Subtitles (Optional)",
+        "tab_batch": "📦 Batch Align",
+        "step1_title": "## Step 1: Transcribe Audio",
+        "step2_title": "## Step 2: Text Alignment",
         "audio_input": "Upload Audio / Video File",
         "lang_label": "Recognition Language",
         "model_label": "ASR Model",
         "model_fast": "⚡Fast 0.6B",
         "model_precise": "🎯Precise 1.7B",
         "btn_transcribe": "▶ Start Transcription",
+        "btn_save_text": "💾 Save Text",
         "transcribing": "Transcribing...",
         "transcribe_done": "Transcription complete",
         "transcribe_fail": "Transcription failed",
@@ -79,18 +139,58 @@ LANG = {
         "no_text": "Please enter or paste text content",
         "no_srt": "Please upload an SRT file",
         "no_indices": "Please enter bad index numbers",
-        "model_hint_align": "Using Qwen3-ForcedAligner-0.6B for alignment",
-        "model_hint_fix": "Using Qwen3-ForcedAligner-0.6B for re-alignment",
+        "model_hint_align": "",
+        "model_hint_fix": "",
         "lang_switch": "Language Switch",
+        "batch_title": "## Batch Align <small style='font-weight:normal;color:#e74c3c;font-size:0.7em'>(same-name text and audio/video files required)</small>",
+        "batch_txt_label": "Upload TXT Files (Multiple)",
+        "batch_audio_label": "Upload Audio/Video Files (Multiple)",
+        "batch_hint": "",
+        "btn_batch_align": "📦 Batch Align All",
+        "batch_running": "Batch alignment in progress...",
+        "batch_done": "Batch alignment done! {success}/{total} succeeded",
+        "batch_fail": "Batch alignment failed",
+        "batch_file": "File",
+        "batch_status": "Status",
+        "batch_success": "✅ Success",
+        "batch_error": "❌ Failed",
+        "btn_download_zip": "📥 Download All SRT",
+        "batch_no_txt": "Please upload TXT files first",
+        "batch_no_audio": "Please upload audio files first",
+        "batch_no_match": "No matching TXT and audio pairs found",
+        "tab_batch_asr": "📦 Batch Transcribe/Align",
+        "batch_asr_title": "## Batch Transcribe + Subtitle Generation",
+        "batch_asr_audio_label": "Upload Audio/Video Files (Multiple)",
+        "btn_batch_asr": "▶ Batch Transcribe All",
+        "batch_asr_results_label": "Batch Results",
+        "batch_asr_running": "Batch transcribing & generating subtitles...",
+        "batch_asr_done": "Batch done! {success}/{total} succeeded",
+        "fa2_checkbox": "Enable Flash Attention 2",
+        "fa2_hint": '<small style="color:#888">Flash Attention 2 (requires NVIDIA Turing SM 7.5 or higher)</small>',
+        "fa2_req": "Minimum hardware: NVIDIA Turing SM 7.5+ (some GTX 16 series)",
+        "fa2_supported": "Your GPU supports this feature, recommended to enable",
+        "fa2_unsupported": "Your GPU does not support this feature, do not enable",
+        "resegment_label": "Re-segment by punctuation",
+        "tab_batch_fixsrt": "📦 Batch SRT Fix",
+        "batch_fixsrt_title": "## Batch SRT Fix <small style='font-weight:normal;color:#e74c3c;font-size:0.7em'>(same-name SRT and audio/video files required)</small>",
+        "batch_fixsrt_srt_label": "Upload SRT Files (Multiple)",
+        "batch_fixsrt_audio_label": "Upload Audio/Video Files (Multiple)",
+        "btn_batch_fixsrt": "📦 Batch Fix All",
+        "batch_fixsrt_running": "Batch SRT fix in progress...",
+        "batch_fixsrt_done": "Batch fix done! {success}/{total} succeeded",
+        "batch_fixsrt_no_srt": "Please upload SRT files first",
+        "batch_fixsrt_no_audio": "Please upload audio files first",
+        "batch_fixsrt_no_match": "No matching SRT and audio pairs found",
     },
 }
 
-current_lang = "中文"
+current_lang = "English"
 
 
 def set_lang(lang: str):
     global current_lang
     current_lang = lang
+
 
 
 def t(key: str) -> str:
