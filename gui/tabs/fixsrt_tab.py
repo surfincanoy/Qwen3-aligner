@@ -70,6 +70,7 @@ def create_fixsrt_tab(run_fixsrt, global_fa2):
             gr.update(value=[]),
             gr.update(value="⏳ " + t("fixing"), visible=True),
             gr.update(visible=False),
+            gr.update(interactive=False),
         ]
 
     def do_fix(file, srt, lang, resegment, fa2):
@@ -78,12 +79,14 @@ def create_fixsrt_tab(run_fixsrt, global_fa2):
                 gr.update(value=[]),
                 gr.update(value="⚠️ " + t("no_audio"), visible=True),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         if not srt:
             return [
                 gr.update(value=[]),
                 gr.update(value="⚠️ " + t("no_srt"), visible=True),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
 
         attn_impl = "flash_attention_2" if fa2 else None
@@ -93,16 +96,18 @@ def create_fixsrt_tab(run_fixsrt, global_fa2):
                 gr.update(value=[]),
                 gr.update(value="❌ " + t("fix_fail") + ": " + error, visible=True),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         return [
             gr.update(value=df_rows),
             gr.update(value="✅ " + t("fix_done"), visible=True),
             gr.update(value=out_path, visible=True),
+            gr.update(interactive=True),
         ]
 
     comps["fix_btn"].click(
         show_fixing,
-        outputs=[comps["srt_output"], fix_status, comps["download_fixed"]],
+        outputs=[comps["srt_output"], fix_status, comps["download_fixed"], comps["fix_btn"]],
     ).then(
         do_fix,
         inputs=[
@@ -112,7 +117,7 @@ def create_fixsrt_tab(run_fixsrt, global_fa2):
             comps["resegment_checkbox"],
             global_fa2,
         ],
-        outputs=[comps["srt_output"], fix_status, comps["download_fixed"]],
+        outputs=[comps["srt_output"], fix_status, comps["download_fixed"], comps["fix_btn"]],
     )
 
     return comps, label_map

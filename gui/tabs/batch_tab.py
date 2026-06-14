@@ -76,13 +76,14 @@ def create_batch_tab(batch_align, global_fa2):
     )
     label_map["batch_results"] = "batch_status"
 
-    batch_outputs = [batch_status, comps["batch_results"], comps["batch_download"]]
+    batch_outputs = [batch_status, comps["batch_results"], comps["batch_download"], comps["batch_btn"]]
 
     def show_batch_running():
         return [
             gr.update(value="⏳ " + t("batch_running"), visible=True),
             gr.update(value=[]),
             gr.update(visible=False),
+            gr.update(interactive=False),
         ]
 
     def do_batch(txt_files, audio_files, lang, fa2):
@@ -91,12 +92,14 @@ def create_batch_tab(batch_align, global_fa2):
                 gr.update(value="⚠️ " + t("batch_no_txt"), visible=True),
                 gr.update(value=[]),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         if not audio_files:
             return [
                 gr.update(value="⚠️ " + t("batch_no_audio"), visible=True),
                 gr.update(value=[]),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
 
         txt_map = {}
@@ -119,6 +122,7 @@ def create_batch_tab(batch_align, global_fa2):
                 gr.update(value="⚠️ " + t("batch_no_match"), visible=True),
                 gr.update(value=[]),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
 
         out_dir = tempfile.mkdtemp()
@@ -141,7 +145,7 @@ def create_batch_tab(batch_align, global_fa2):
 
         if not align_entries:
             status_msg = t("batch_done").format(success=0, total=len(matched))
-            return [gr.update(value="❌ " + status_msg, visible=True), gr.update(value=rows), gr.update(visible=False)]
+            return [gr.update(value="❌ " + status_msg, visible=True), gr.update(value=rows), gr.update(visible=False), gr.update(interactive=True)]
 
         # Phase 2: align all (loads model once)
         srt_results = batch_align(align_entries, lang, attn_implementation=attn_impl)
@@ -174,6 +178,7 @@ def create_batch_tab(batch_align, global_fa2):
             gr.update(value="✅ " + status_msg, visible=True),
             gr.update(value=rows),
             gr.update(value=zip_path, visible=True) if zip_path else gr.update(visible=False),
+            gr.update(interactive=True),
         ]
 
     comps["batch_btn"].click(

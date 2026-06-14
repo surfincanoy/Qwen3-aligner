@@ -70,13 +70,14 @@ def create_batch_transcribe_tab(batch_transcribe, batch_align, global_fa2):
     )
     label_map["batch_asr_results"] = "batch_asr_results_label"
 
-    batch_outputs = [batch_asr_status, comps["batch_asr_results"], comps["batch_asr_download"]]
+    batch_outputs = [batch_asr_status, comps["batch_asr_results"], comps["batch_asr_download"], comps["batch_asr_btn"]]
 
     def show_running():
         return [
             gr.update(value="⏳ " + t("batch_asr_running"), visible=True),
             gr.update(value=[]),
             gr.update(visible=False),
+            gr.update(interactive=False),
         ]
 
     def do_batch(audio_files, lang, model, fa2):
@@ -85,6 +86,7 @@ def create_batch_transcribe_tab(batch_transcribe, batch_align, global_fa2):
                 gr.update(value="⚠️ " + t("no_audio"), visible=True),
                 gr.update(value=[]),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
 
         model_size = "1.7B" if model == t("model_precise") else "0.6B"
@@ -100,6 +102,7 @@ def create_batch_transcribe_tab(batch_transcribe, batch_align, global_fa2):
                 gr.update(value="❌ " + err, visible=True),
                 gr.update(value=[]),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
 
         total = len(texts)
@@ -118,7 +121,7 @@ def create_batch_transcribe_tab(batch_transcribe, batch_align, global_fa2):
 
         if not align_entries:
             status_msg = t("batch_asr_done").format(success=0, total=total)
-            return [gr.update(value="❌ " + status_msg, visible=True), gr.update(value=rows), gr.update(visible=False)]
+            return [gr.update(value="❌ " + status_msg, visible=True), gr.update(value=rows), gr.update(visible=False), gr.update(interactive=True)]
 
         # Phase 2: align all transcribed files (loads aligner model once)
         srt_results = batch_align(align_entries, lang, attn_implementation=attn_impl)
@@ -150,6 +153,7 @@ def create_batch_transcribe_tab(batch_transcribe, batch_align, global_fa2):
             gr.update(value="✅ " + status_msg, visible=True),
             gr.update(value=rows),
             gr.update(value=zip_path, visible=True) if zip_path else gr.update(visible=False),
+            gr.update(interactive=True),
         ]
 
     comps["batch_asr_btn"].click(

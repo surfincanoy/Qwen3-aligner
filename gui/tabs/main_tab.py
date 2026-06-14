@@ -85,13 +85,14 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
     )
     label_map["srt_output"] = "srt_preview"
 
-    t_outputs = [transcribe_status, comps["text_input"], comps["download_text"]]
+    t_outputs = [transcribe_status, comps["text_input"], comps["download_text"], comps["transcribe_btn"]]
 
     def show_transcribing():
         return [
             gr.update(value="⏳ " + t("transcribing"), visible=True),
             gr.update(value=""),
             gr.update(visible=False),
+            gr.update(interactive=False),
         ]
 
     def do_transcribe(file, lang, model, fa2):
@@ -100,6 +101,7 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
                 gr.update(value="⚠️ " + t("no_audio"), visible=True),
                 gr.update(value=""),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         model_size = "1.7B" if model == t("model_precise") else "0.6B"
         attn_impl = "flash_attention_2" if fa2 else None
@@ -109,6 +111,7 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
                 gr.update(value="❌ " + t("transcribe_fail") + ": " + error, visible=True),
                 gr.update(value=""),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         base = os.path.splitext(os.path.basename(file))[0]
         download_name = base + ".txt"
@@ -120,6 +123,7 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
             gr.update(visible=False),
             gr.update(value=result),
             gr.update(value=path, visible=True),
+            gr.update(interactive=True),
         ]
 
     def show_aligning():
@@ -127,6 +131,7 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
             gr.update(value=[]),
             gr.update(value="⏳ " + t("aligning"), visible=True),
             gr.update(visible=False),
+            gr.update(interactive=False),
         ]
 
     def do_align(file, text, lang, fa2):
@@ -135,12 +140,14 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
                 gr.update(value=[]),
                 gr.update(value="⚠️ " + t("no_audio"), visible=True),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         if not text or not text.strip():
             return [
                 gr.update(value=[]),
                 gr.update(value="⚠️ " + t("no_text"), visible=True),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         attn_impl = "flash_attention_2" if fa2 else None
         srt_content, srt_path, df_rows, error = run_align(file.name, text, lang, attn_implementation=attn_impl)
@@ -149,6 +156,7 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
                 gr.update(value=[]),
                 gr.update(value="❌ " + t("align_fail") + ": " + error, visible=True),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         base = os.path.splitext(os.path.basename(file))[0]
         download_name = base + ".srt"
@@ -161,6 +169,7 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
             gr.update(value=df_rows),
             gr.update(value="✅ " + t("align_done"), visible=True),
             gr.update(value=dst, visible=True),
+            gr.update(interactive=True),
         ]
 
     comps["transcribe_btn"].click(
@@ -172,8 +181,8 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
         outputs=t_outputs,
     )
 
-    a_status_outputs = [comps["srt_output"], align_status, comps["download_srt"]]
-    a_result_outputs = [comps["srt_output"], align_status, comps["download_srt"]]
+    a_status_outputs = [comps["srt_output"], align_status, comps["download_srt"], comps["align_btn"]]
+    a_result_outputs = [comps["srt_output"], align_status, comps["download_srt"], comps["align_btn"]]
 
     comps["align_btn"].click(
         show_aligning,

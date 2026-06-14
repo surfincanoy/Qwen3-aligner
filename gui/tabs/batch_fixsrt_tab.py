@@ -85,13 +85,14 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
     )
     label_map["batch_fixsrt_results"] = "batch_status"
 
-    batch_outputs = [batch_fixsrt_status, comps["batch_fixsrt_results"], comps["batch_fixsrt_download"]]
+    batch_outputs = [batch_fixsrt_status, comps["batch_fixsrt_results"], comps["batch_fixsrt_download"], comps["batch_fixsrt_btn"]]
 
     def show_running():
         return [
             gr.update(value="⏳ " + t("batch_fixsrt_running"), visible=True),
             gr.update(value=[]),
             gr.update(visible=False),
+            gr.update(interactive=False),
         ]
 
     def do_batch(srt_files, audio_files, lang, resegment, fa2):
@@ -100,12 +101,14 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
                 gr.update(value="⚠️ " + t("batch_fixsrt_no_srt"), visible=True),
                 gr.update(value=[]),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
         if not audio_files:
             return [
                 gr.update(value="⚠️ " + t("batch_fixsrt_no_audio"), visible=True),
                 gr.update(value=[]),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
 
         srt_map = {}
@@ -128,6 +131,7 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
                 gr.update(value="⚠️ " + t("batch_fixsrt_no_match"), visible=True),
                 gr.update(value=[]),
                 gr.update(visible=False),
+                gr.update(interactive=True),
             ]
 
         out_dir = tempfile.mkdtemp()
@@ -162,7 +166,7 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
 
         if not align_entries:
             status_msg = t("batch_fixsrt_done").format(success=0, total=len(matched))
-            return [gr.update(value="❌ " + status_msg, visible=True), gr.update(value=rows), gr.update(visible=False)]
+            return [gr.update(value="❌ " + status_msg, visible=True), gr.update(value=rows), gr.update(visible=False), gr.update(interactive=True)]
 
         srt_results = batch_align(align_entries, lang, attn_implementation=attn_impl, orig_entry_texts=preserve_texts)
 
@@ -194,6 +198,7 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
             gr.update(value="✅ " + status_msg, visible=True),
             gr.update(value=rows),
             gr.update(value=zip_path, visible=True) if zip_path else gr.update(visible=False),
+            gr.update(interactive=True),
         ]
 
     comps["batch_fixsrt_btn"].click(
