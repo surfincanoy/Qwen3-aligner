@@ -26,6 +26,8 @@
 
 ## 📖 &nbsp;Introduction
 
+> **Note:** To use GPU, you need to install the PyTorch version that matches your system's CUDA version.
+
 Qwen3-aligner is an all-in-one audio processing tool powered by **Qwen3-ASR** and **Qwen3-ForcedAligner** from Alibaba's Tongyi Qianwen series. It supports single-file transcription & alignment, batch processing, SRT timestamp repair, and comes with a **bilingual (Chinese/English) Gradio UI**. No limit on audio duration.
 
 | Feature | Description |

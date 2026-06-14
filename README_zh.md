@@ -26,6 +26,8 @@
 
 ## 📖 &nbsp;介绍
 
+> **注意：** 要使用GPU，需要安装符合自己系统CUDA版本要求的Pytorch版本。
+
 Qwen3-aligner 基于通义千问 **Qwen3-ASR** 与 **Qwen3-ForcedAligner** 模型，提供一站式音频处理能力。支持单文件转录对齐、批量处理、SRT 时间戳修复，并内置 **中英双语 Gradio 界面**，对音频无时长限制。
 
 | 功能 | 说明 |
