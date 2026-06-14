@@ -54,14 +54,6 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
     label_map["transcribe_btn"] = "btn_transcribe"
     label_map["download_text"] = "btn_save_text"
 
-    comps["transcript_output"] = gr.Textbox(
-        label=t("transcript_result"),
-        lines=8,
-        interactive=True,
-        placeholder=t("placeholder_text"),
-    )
-    label_map["transcript_output"] = "transcript_result"
-
     gr.Markdown("---")
     comps["step2_title"] = gr.Markdown(t("step2_title"))
     label_map["step2_title"] = "step2_title"
@@ -93,12 +85,12 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
     )
     label_map["srt_output"] = "srt_preview"
 
-    t_outputs = [transcribe_status, comps["transcript_output"], comps["download_text"]]
+    t_outputs = [transcribe_status, comps["text_input"], comps["download_text"]]
 
     def show_transcribing():
         return [
             gr.update(value="⏳ " + t("transcribing"), visible=True),
-            gr.update(value=t("placeholder_text")),
+            gr.update(value=""),
             gr.update(visible=False),
         ]
 
@@ -171,9 +163,6 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
             gr.update(value=dst, visible=True),
         ]
 
-    def auto_fill_text(transcript):
-        return gr.update(value=transcript if transcript else "")
-
     comps["transcribe_btn"].click(
         show_transcribing,
         outputs=t_outputs,
@@ -181,12 +170,6 @@ def create_main_tab(run_transcribe, run_align, global_fa2):
         do_transcribe,
         inputs=[comps["audio_input"], comps["lang_dropdown"], comps["model_radio"], global_fa2],
         outputs=t_outputs,
-    )
-
-    comps["transcript_output"].change(
-        auto_fill_text,
-        inputs=[comps["transcript_output"]],
-        outputs=[comps["text_input"]],
     )
 
     a_status_outputs = [comps["srt_output"], align_status, comps["download_srt"]]

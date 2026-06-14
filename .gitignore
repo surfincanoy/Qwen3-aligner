@@ -10,8 +10,6 @@ venv/
 *.ogg
 Qwen/
 docs/
-examples/
 example/
-FireRedVAD/
 .gradio/
-abbreviations.json
+.gitignore
