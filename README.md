@@ -52,11 +52,10 @@ Qwen3-aligner is an all-in-one audio processing tool powered by **Qwen3-ASR** an
 | ffmpeg | Audio/video processing |
 | VRAM | ≥ 6GB (ASR + Align models) |
 
-### 🔧 Installation
+### 🔧 Installation (run the terminal program in the project folder)
 
 ```bash
 uv venv --python 3.12
-# source .venv/bin/activate   # Linux/macOS
 
 uv pip install -r requirements.txt    # uv recommended
 

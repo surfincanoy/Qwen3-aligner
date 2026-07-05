@@ -52,11 +52,10 @@ Qwen3-aligner は、阿里巴巴（アリババ）通義千問の **Qwen3-ASR** 
 | ffmpeg | 音声・動画処理 |
 | VRAM | ≥ 6GB（ASR + Align モデル） |
 
-### 🔧 インストール
+### 🔧 プロジェクトフォルダでターミナルプログラムを実行してインストール
 
 ```bash
 uv venv --python 3.12
-# source .venv/bin/activate   # Linux/macOS
 
 uv pip install -r requirements.txt    # uv 推奨
 

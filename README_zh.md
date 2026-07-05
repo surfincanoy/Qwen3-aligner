@@ -52,11 +52,10 @@ Qwen3-aligner 基于通义千问 **Qwen3-ASR** 与 **Qwen3-ForcedAligner** 模�
 | ffmpeg | 音频/视频处理 |
 | 显存 | ≥ 6GB（ASR + Align 模型） |
 
-### 🔧 安装
+### ### 安装（在项目文件夹中运行终端程序安装）
 
 ```bash
 uv venv --python 3.12
-# source .venv/bin/activate   # Linux/macOS
 
 uv pip install -r requirements.txt    # 推荐 uv
 
