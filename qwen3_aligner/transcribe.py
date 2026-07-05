@@ -112,7 +112,7 @@ def run_transcribe(audio_path: str, language: str, model_size: str = "0.6B") -> 
     results = transcribe_audio(chunks, model, language=language)
     del model
     clear_memory_cache()
-    full_text = " ".join([r["text"] for r in results])
+    full_text = "\n".join([r["text"] for r in results])
     return full_text, results
 
 

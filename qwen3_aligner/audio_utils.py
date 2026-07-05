@@ -24,14 +24,12 @@ import numpy as np
 import soundfile as sf
 import torch
 
-
 WAV_SAMPLE_RATE = 16000
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv", ".webm", ".m4v"}
 
 _PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _VAD_DIR = os.path.join(_PROJECT_DIR, "FireRedVAD")
-
 
 
 def load_audio(file_path: str) -> np.ndarray:
@@ -69,9 +67,7 @@ def load_audio(file_path: str) -> np.ndarray:
                 wav_data, _ = sf.read(data_io, dtype="float32")
             return wav_data
         except Exception as ffmpeg_e:
-            raise RuntimeError(
-                f"Failed to load audio: {ffmpeg_e}"
-            )
+            raise RuntimeError(f"Failed to load audio: {ffmpeg_e}")
 
 
 def extract_audio_from_video(video_path: str) -> str:
@@ -130,9 +126,15 @@ def create_vad_model():
     from fireredvad import FireRedVad, FireRedVadConfig
 
     config = FireRedVadConfig(
-        use_gpu=False, smooth_window_size=5, speech_threshold=0.4,
-        min_speech_frame=20, max_speech_frame=2000, min_silence_frame=20,
-        merge_silence_frame=0, extend_speech_frame=0, chunk_max_frame=30000,
+        use_gpu=False,
+        smooth_window_size=5,
+        speech_threshold=0.4,
+        min_speech_frame=20,
+        max_speech_frame=2000,
+        min_silence_frame=20,
+        merge_silence_frame=0,
+        extend_speech_frame=0,
+        chunk_max_frame=30000,
     )
     return FireRedVad.from_pretrained(_VAD_DIR, config)
 

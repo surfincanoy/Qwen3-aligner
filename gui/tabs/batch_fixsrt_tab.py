@@ -18,10 +18,10 @@ import zipfile
 from datetime import datetime
 
 import gradio as gr
-
-from gui.i18n import LANGUAGES, t
 from qwen3_aligner.srt_utils import load_srt
 from qwen3_aligner.text_utils import split_text
+
+from gui.i18n import LANGUAGES, t
 
 
 def create_batch_fixsrt_tab(batch_align, global_fa2):
@@ -57,7 +57,8 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
         label_map["batch_fixsrt_lang"] = "lang_label"
 
         comps["batch_fixsrt_resegment"] = gr.Checkbox(
-            label=t("resegment_label"), value=False,
+            label=t("resegment_label"),
+            value=False,
             elem_classes="resegment-label",
         )
         label_map["batch_fixsrt_resegment"] = "resegment_label"
@@ -70,7 +71,8 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
         label_map["batch_fixsrt_btn"] = "btn_batch_fixsrt"
 
         comps["batch_fixsrt_download"] = gr.DownloadButton(
-            label=t("btn_download_zip"), visible=False,
+            label=t("btn_download_zip"),
+            visible=False,
         )
         label_map["batch_fixsrt_download"] = "btn_download_zip"
 
@@ -85,7 +87,12 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
     )
     label_map["batch_fixsrt_results"] = "batch_status"
 
-    batch_outputs = [batch_fixsrt_status, comps["batch_fixsrt_results"], comps["batch_fixsrt_download"], comps["batch_fixsrt_btn"]]
+    batch_outputs = [
+        batch_fixsrt_status,
+        comps["batch_fixsrt_results"],
+        comps["batch_fixsrt_download"],
+        comps["batch_fixsrt_btn"],
+    ]
 
     def show_running():
         return [
@@ -149,7 +156,12 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
                     continue
                 srt_texts = [e["text"].replace("\n", " ") for e in entries]
                 if resegment:
-                    segs = split_text(" ".join(srt_texts) if lang not in {"Chinese", "Japanese", "Korean", "Thai"} else "".join(srt_texts), lang)
+                    segs = split_text(
+                        " ".join(srt_texts)
+                        if lang not in {"Chinese", "Japanese", "Korean", "Thai"}
+                        else "".join(srt_texts),
+                        lang,
+                    )
                     full_text = "\n".join(segs)
                 else:
                     if lang in {"Chinese", "Japanese", "Korean", "Thai"}:
@@ -166,9 +178,19 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
 
         if not align_entries:
             status_msg = t("batch_fixsrt_done").format(success=0, total=len(matched))
-            return [gr.update(value="❌ " + status_msg, visible=True), gr.update(value=rows), gr.update(visible=False), gr.update(interactive=True)]
+            return [
+                gr.update(value="❌ " + status_msg, visible=True),
+                gr.update(value=rows),
+                gr.update(visible=False),
+                gr.update(interactive=True),
+            ]
 
-        srt_results = batch_align(align_entries, lang, attn_implementation=attn_impl, orig_entry_texts=preserve_texts)
+        srt_results = batch_align(
+            align_entries,
+            lang,
+            attn_implementation=attn_impl,
+            orig_entry_texts=preserve_texts,
+        )
 
         for name in align_entries:
             srt_content, json_content, err = srt_results.get(name, ("", "", "未知错误"))
@@ -197,7 +219,9 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
         return [
             gr.update(value="✅ " + status_msg, visible=True),
             gr.update(value=rows),
-            gr.update(value=zip_path, visible=True) if zip_path else gr.update(visible=False),
+            gr.update(value=zip_path, visible=True)
+            if zip_path
+            else gr.update(visible=False),
             gr.update(interactive=True),
         ]
 
@@ -206,7 +230,13 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
         outputs=batch_outputs,
     ).then(
         do_batch,
-        inputs=[comps["batch_fixsrt_srt_files"], comps["batch_fixsrt_audio_files"], comps["batch_fixsrt_lang"], comps["batch_fixsrt_resegment"], global_fa2],
+        inputs=[
+            comps["batch_fixsrt_srt_files"],
+            comps["batch_fixsrt_audio_files"],
+            comps["batch_fixsrt_lang"],
+            comps["batch_fixsrt_resegment"],
+            global_fa2,
+        ],
         outputs=batch_outputs,
     )
 

@@ -61,7 +61,7 @@ def run_transcribe(
         chunks = load_and_segment_audio(audio_path, segment_length_s=120)
         model = load_asr_model(model_name, attn_implementation=attn_implementation)
         results = transcribe_audio(chunks, model, language=language)
-        full_text = " ".join([r["text"] for r in results])
+        full_text = "\n".join([r["text"] for r in results])
         return full_text, ""
     except Exception as e:
         return "", str(e)
@@ -95,7 +95,7 @@ def batch_transcribe(
                 audio_path = ensure_audio(f.name)
                 chunks = load_and_segment_audio(audio_path, segment_length_s=120)
                 texts = transcribe_audio(chunks, model, language=language)
-                full_text = " ".join([r["text"] for r in texts])
+                full_text = "\n".join([r["text"] for r in texts])
                 results[base] = {"text": full_text, "audio_path": audio_path}
             except Exception as e:
                 results[base] = None

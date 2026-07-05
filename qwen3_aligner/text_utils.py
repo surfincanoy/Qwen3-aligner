@@ -56,7 +56,7 @@ def is_in_url_or_email(text: str, pos: int, url_list: list) -> bool:
 def is_abbreviation_context(text: str, pos: int, abbreviations: set) -> bool:
     if pos == 0 or not text[pos - 1].isalpha():
         return False
-    prefix = text[max(0, pos - 10): pos]
+    prefix = text[max(0, pos - 10) : pos]
     prefix_lower = prefix.lower().strip()
     for abbrev in abbreviations:
         abbrev_clean = abbrev.rstrip(".").lower()
@@ -79,16 +79,16 @@ def _looks_like_file_ext(text: str, pos: int) -> bool:
         i += 1
     if ext_len < 1:
         return False
-    return i >= len(text) or text[i] in ' \t\n\r,;:)]'
+    return i >= len(text) or text[i] in " \t\n\r,;:)]"
 
 
 def add_spaces_before_split(text: str, abbreviations: set) -> str:
     url_list = extract_urls_and_emails(text)
-    separators = {".", "?", "!"}
+    separators = {".", "?", "!", ";"}
     result = []
     i = 0
     while i < len(text):
-        if i + 2 < len(text) and text[i:i + 3] == "...":
+        if i + 2 < len(text) and text[i : i + 3] == "...":
             result.append("...")
             if i + 3 < len(text) and text[i + 3] != " ":
                 result.append(" ")
@@ -98,7 +98,9 @@ def add_spaces_before_split(text: str, abbreviations: set) -> str:
         if char == "." and _looks_like_file_ext(text, i):
             result.append(char)
         elif char in separators:
-            if is_in_url_or_email(text, i, url_list) or is_abbreviation_context(text, i, abbreviations):
+            if is_in_url_or_email(text, i, url_list) or is_abbreviation_context(
+                text, i, abbreviations
+            ):
                 result.append(char)
             else:
                 result.append(char)
@@ -115,15 +117,15 @@ def split_english_text(text: str, abbreviations: set = None) -> list[str]:
     if abbreviations is None:
         abbreviations = load_abbreviations()
     text = add_spaces_before_split(text, abbreviations)
-    seps = ['?" ', '!" ', '." ', ". ", "? ", "! ", ", ", "\n", "\t", "\r"]
+    seps = ['?" ', '!" ', '." ', ". ", "? ", "! ", ", ", "; ", "\n", "\t", "\r"]
     segments = []
     last_sep_idx = -1
     i = 0
     while i < len(text):
         matched = False
         for sep in seps:
-            if text[i:i+len(sep)] == sep:
-                segment = text[last_sep_idx + 1: i + len(sep)].strip()
+            if text[i : i + len(sep)] == sep:
+                segment = text[last_sep_idx + 1 : i + len(sep)].strip()
                 if segment:
                     segments.append(segment)
                 last_sep_idx = i + len(sep) - 1
@@ -133,7 +135,7 @@ def split_english_text(text: str, abbreviations: set = None) -> list[str]:
         if not matched:
             i += 1
     if last_sep_idx < len(text):
-        final_segment = text[last_sep_idx + 1:].strip()
+        final_segment = text[last_sep_idx + 1 :].strip()
         if final_segment:
             segments.append(final_segment)
     segments = [s for s in segments if s]
@@ -152,11 +154,24 @@ def split_english_text(text: str, abbreviations: set = None) -> list[str]:
 def split_text_by_punctuation(text: str, punctuation: list[str] = None) -> list[str]:
     if punctuation is None:
         punctuation = [
-            '。', '。"', '。”', '，”',
-            '！', '！"', '！”',
-            '？', '？"', '？”',
-            '，', '、',
-            '．', '；', '──', "\n", "\t", "\r",
+            "。",
+            '。"',
+            "。”",
+            "，”",
+            "！",
+            '！"',
+            "！”",
+            "？",
+            '？"',
+            "？”",
+            "，",
+            "、",
+            "．",
+            "；",
+            "──",
+            "\n",
+            "\t",
+            "\r",
         ]
         # ensure longer (compound) patterns are matched first
         punctuation = sorted(punctuation, key=len, reverse=True)
@@ -186,10 +201,10 @@ def match_words_to_sentences(
     sentences: list[str],
     words: list[tuple[str, float, float]],
 ) -> list[dict]:
-    _KEEP = re.compile(r'[^\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\u3005a-zA-Z0-9]')
+    _KEEP = re.compile(r"[^\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\u3005a-zA-Z0-9]")
 
     def _norm(t: str) -> str:
-        return _KEEP.sub('', t).strip()
+        return _KEEP.sub("", t).strip()
 
     result = []
     word_idx = 0
@@ -221,13 +236,13 @@ def match_words_to_sentences(
             if len(acc_norm) >= len(sent_norm) and acc_norm.startswith(sent_norm):
                 break
 
-        result.append({
-            "sentence": sent,
-            "start": sent_start,
-            "end": sent_end,
-            "words": sent_words,
-        })
+        result.append(
+            {
+                "sentence": sent,
+                "start": sent_start,
+                "end": sent_end,
+                "words": sent_words,
+            }
+        )
 
     return result
-
-
