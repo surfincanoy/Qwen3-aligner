@@ -113,6 +113,9 @@ Upload TXT + matching audio files → select language → batch align → ZIP do
 
 Check the **Flash Attention** checkbox in the top-right corner to enable FA2 acceleration on supported hardware (NVIDIA Turing SM 7.5+, including RTX 20/30/40 series, some GTX 16 series).
 
+- Linux: install directly with `uv pip install flash-attn`
+- Windows: download the appropriate wheel from https://github.com/kingbri1/flash-attention/releases/tag/v2.8.2 and install it with `uv pip install <wheel-file>`
+
 <br>
 
 ---

@@ -10,7 +10,7 @@ numpy>=2.3.0
 qwen-asr>=0.0.6
 soundfile>=0.13.1
 torch==2.6.0
-torchaudio==2.6.0
-torchcodec>=0.11.0
+torchaudio==2.6.0   # Install a version corresponding to your CUDA version. 请安装cuda对应的版本
+torchcodec>=0.11.0  # Install a version corresponding to your CUDA version. 请安装cuda对应的版本
 tqdm>=4.67.3
 tzdata

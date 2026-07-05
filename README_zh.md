@@ -114,6 +114,9 @@ Step 2  自动填充或粘贴文本 → 生成 SRT 字幕 → 下载
 
 勾选界面右上角 **Flash Attention 加速** 复选框，在支持硬件上启用 FA2 加速（NVIDIA Turing SM 7.5+，含 RTX 20（部分）/30/40 系列，部分 GTX 16 系列）。
 
+- Linux：直接安装 `uv pip install flash-attn`
+- Windows：自行从 https://github.com/kingbri1/flash-attention/releases/tag/v2.8.2 下载合适的版本，并通过 `uv pip install <wheel文件>` 安装
+
 <br>
 
 ---

@@ -114,6 +114,9 @@ TXT + 同名の音声ファイルをアップロード → 言語を選択 → �
 
 右上の **Flash Attention 加速** チェックボックスをオンにすると、対応ハードウェアで FA2 アクセラレーションが有効になります（NVIDIA Turing SM 7.5+、RTX 20（一部）/30/40 シリーズ、一部の GTX 16 シリーズを含む）。
 
+- Linux: `uv pip install flash-attn` で直接インストールできます
+- Windows: https://github.com/kingbri1/flash-attention/releases/tag/v2.8.2 から適切なバージョンの wheel をダウンロードし、`uv pip install <wheelファイル>` でインストールしてください
+
 <br>
 
 ---
