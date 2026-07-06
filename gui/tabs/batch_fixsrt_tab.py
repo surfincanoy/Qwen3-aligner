@@ -158,13 +158,13 @@ def create_batch_fixsrt_tab(batch_align, global_fa2):
                 if resegment:
                     segs = split_text(
                         " ".join(srt_texts)
-                        if lang not in {"Chinese", "Japanese", "Korean", "Thai"}
+                        if lang not in {"Chinese", "Japanese", "Thai"}
                         else "".join(srt_texts),
                         lang,
                     )
                     full_text = "\n".join(segs)
                 else:
-                    if lang in {"Chinese", "Japanese", "Korean", "Thai"}:
+                    if lang in {"Chinese", "Japanese", "Thai"}:
                         full_text = "".join(srt_texts)
                     else:
                         full_text = " ".join(srt_texts)

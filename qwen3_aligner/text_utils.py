@@ -112,12 +112,7 @@ def add_spaces_before_split(text: str, abbreviations: set) -> str:
     return "".join(result)
 
 
-def split_english_text(text: str, abbreviations: set = None) -> list[str]:
-    text = text.replace("\n", " ").replace("\t", " ").replace("\r", " ")
-    if abbreviations is None:
-        abbreviations = load_abbreviations()
-    text = add_spaces_before_split(text, abbreviations)
-    seps = ['?" ', '!" ', '." ', ". ", "? ", "! ", ", ", "; ", "\n", "\t", "\r"]
+def _split_by_separators(text: str, seps: list[str]) -> list[str]:
     segments = []
     last_sep_idx = -1
     i = 0
@@ -138,7 +133,25 @@ def split_english_text(text: str, abbreviations: set = None) -> list[str]:
         final_segment = text[last_sep_idx + 1 :].strip()
         if final_segment:
             segments.append(final_segment)
-    segments = [s for s in segments if s]
+    return [s for s in segments if s]
+
+
+def split_korean_text(text: str, abbreviations: set = None) -> list[str]:
+    text = text.replace("\n", " ").replace("\t", " ").replace("\r", " ")
+    if abbreviations is None:
+        abbreviations = load_abbreviations()
+    text = add_spaces_before_split(text, abbreviations)
+    seps = ['?" ', '!" ', '." ', ". ", "? ", "! ", ", ", "; ", "\n", "\t", "\r"]
+    return _split_by_separators(text, seps)
+
+
+def split_english_text(text: str, abbreviations: set = None) -> list[str]:
+    text = text.replace("\n", " ").replace("\t", " ").replace("\r", " ")
+    if abbreviations is None:
+        abbreviations = load_abbreviations()
+    text = add_spaces_before_split(text, abbreviations)
+    seps = ['?" ', '!" ', '." ', ". ", "? ", "! ", ", ", "; ", "\n", "\t", "\r"]
+    segments = _split_by_separators(text, seps)
     merged = []
     i = 0
     while i < len(segments):
@@ -194,6 +207,8 @@ def split_text_by_punctuation(text: str, punctuation: list[str] = None) -> list[
 def split_text(text: str, language: str) -> list[str]:
     if language == "English":
         return split_english_text(text)
+    if language == "Korean":
+        return split_korean_text(text)
     return split_text_by_punctuation(text)
 
 

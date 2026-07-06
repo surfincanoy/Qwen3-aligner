@@ -160,7 +160,7 @@ def batch_align(
                             for i, t in enumerate(orig_texts)
                         ]
                 else:
-                    entries_list = sentences_to_entries(merge_sentences(sentences))
+                    entries_list = sentences_to_entries(merge_sentences(sentences, language))
                 srt_content = sentences_to_srt(entries_list)
                 results[base] = (srt_content, "", "")
             except Exception as e:
@@ -188,7 +188,7 @@ def run_align(
         if not sentences:
             return "", "", [], "对齐未生成任何结果"
 
-        entries = sentences_to_entries(merge_sentences(sentences))
+        entries = sentences_to_entries(merge_sentences(sentences, language))
         srt_content = sentences_to_srt(entries)
         fd, srt_path = tempfile.mkstemp(suffix=".srt")
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -216,7 +216,7 @@ def run_fixsrt(
             return "", "", [], "SRT 文件为空或格式错误"
 
         srt_texts = [e["text"].replace("\n", " ") for e in orig_entries]
-        if language in {"Chinese", "Japanese", "Korean", "Thai"}:
+        if language in {"Chinese", "Japanese", "Thai"}:
             full_text = "".join(srt_texts)
         else:
             full_text = " ".join(srt_texts)
@@ -235,7 +235,7 @@ def run_fixsrt(
             return "", "", [], "对齐未生成任何结果"
 
         if resegment:
-            out_entries = sentences_to_entries(merge_sentences(sentences))
+            out_entries = sentences_to_entries(merge_sentences(sentences, language))
         else:
             all_words = []
             for s in sentences:

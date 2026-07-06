@@ -62,7 +62,7 @@ class Aligner:
         return split_text(text, self.language)
 
     def _join_text(self, segments: list[str]) -> str:
-        if self.language in {"Chinese", "Japanese", "Korean", "Thai"}:
+        if self.language in {"Chinese", "Japanese", "Thai"}:
             return "".join(segments)
         return " ".join(segments)
 

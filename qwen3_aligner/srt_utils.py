@@ -69,7 +69,7 @@ def sentences_to_srt(sentences: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def merge_sentences(sentences: list[dict]) -> list[dict]:
+def merge_sentences(sentences: list[dict], language: str = None) -> list[dict]:
     if len(sentences) < 2:
         return list(sentences)
     result = [dict(s) for s in sentences]
@@ -81,20 +81,19 @@ def merge_sentences(sentences: list[dict]) -> list[dict]:
             s = result[i]
             text = s.get("text", "").strip()
 
-            # Merge right: sentence ending with ? (merge left from next's perspective)
-            if i + 1 < len(result):
-                nxt = result[i + 1]
-                nxt_text = nxt.get("text", "").strip()
-                if nxt_text.endswith("?") and len(nxt_text) < 20:
-                    s["text"] = text + " " + nxt_text
-                    s["end_time"] = nxt["end_time"]
-                    if "words" in s and "words" in nxt:
-                        s["words"].extend(nxt["words"])
-                    result.pop(i + 1)
-                    changed = True
-                    continue
+            if language != "Korean":
+                if i + 1 < len(result):
+                    nxt = result[i + 1]
+                    nxt_text = nxt.get("text", "").strip()
+                    if nxt_text.endswith("?") and len(nxt_text) < 20:
+                        s["text"] = text + " " + nxt_text
+                        s["end_time"] = nxt["end_time"]
+                        if "words" in s and "words" in nxt:
+                            s["words"].extend(nxt["words"])
+                        result.pop(i + 1)
+                        changed = True
+                        continue
 
-            # Merge right: comma + short
             if text.endswith(",") and len(text) < 20 and i + 1 < len(result):
                 nxt = result[i + 1]
                 s["text"] = text + " " + nxt["text"].strip()
