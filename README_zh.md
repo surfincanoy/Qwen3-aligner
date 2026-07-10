@@ -57,7 +57,7 @@ Qwen3-aligner 基于通义千问 **Qwen3-ASR** 与 **Qwen3-ForcedAligner** 模�
 ```bash
 uv venv --python 3.12
 
-uv pip install -r requirements.txt    # 推荐 uv
+uv pip install -r requirements.txt  --extra-index-url https://download.pytorch.org/whl/cu124  # 推荐 uv
 
 ffmpeg -version   # 确认 ffmpeg 可用
 ```

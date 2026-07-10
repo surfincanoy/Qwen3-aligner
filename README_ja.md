@@ -57,7 +57,7 @@ Qwen3-aligner は、阿里巴巴（アリババ）通義千問の **Qwen3-ASR** 
 ```bash
 uv venv --python 3.12
 
-uv pip install -r requirements.txt    # uv 推奨
+uv pip install -r requirements.txt  --extra-index-url https://download.pytorch.org/whl/cu124  # uv 推奨
 
 ffmpeg -version   # ffmpeg が利用可能か確認
 ```
