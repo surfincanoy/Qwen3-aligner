@@ -55,9 +55,9 @@ Qwen3-aligner is an all-in-one audio processing tool powered by **Qwen3-ASR** an
 ### 🔧 Installation (run the terminal program in the project folder)
 
 ```bash
-uv venv --python 3.12
+uv venv --python 3.12   # uv recommended
 
-uv pip install -r requirements.txt  --extra-index-url https://download.pytorch.org/whl/cu124 # uv recommended
+uv pip install -r requirements.替换为系统中的cuda版本txt  --extra-index-url https://download.pytorch.org/whl/cu124  #Replace with the system's CUDA version
 
 ffmpeg -version   # verify ffmpeg is available
 ```
