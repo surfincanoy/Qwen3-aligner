@@ -1,6 +1,7 @@
 # Minimal top-level dependencies for this project
 # Install ffmpeg separately via your OS package manager
---index-url https://download.pytorch.org/whl/cu124
+# Install ffmpeg separately via your OS package manager
+# Use PyTorch wheel index as an extra index so PyPI remains primary
 colorama
 fireredvad
 gradio==6.5.1
@@ -9,8 +10,8 @@ modelscope>=1.35.3
 numpy>=2.3.0
 qwen-asr>=0.0.6
 soundfile>=0.13.1
-torch==2.6.0
+torch==2.6.0        # Install a version corresponding to your CUDA version. 请安装cuda对应的版本
 torchaudio==2.6.0   # Install a version corresponding to your CUDA version. 请安装cuda对应的版本
-torchcodec>=0.11.0  # Install a version corresponding to your CUDA version. 请安装cuda对应的版本
+torchcodec==0.11.0  
 tqdm>=4.67.3
 tzdata

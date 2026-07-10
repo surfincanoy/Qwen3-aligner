@@ -13,3 +13,6 @@ docs/
 example/
 .gradio/
 .gitignore
+t.py
+test.py
+*.txt
