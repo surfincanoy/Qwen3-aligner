@@ -58,7 +58,7 @@ Qwen3-aligner は、阿里巴巴（アリババ）通義千問の **Qwen3-ASR** 
 uv venv --python 3.12  # uv 推奨
 
 uv pip install -r requirements.txt  
-uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124  #システムのCUDAバージョンに置き換える
+uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124  # ‘cu124’ システムのCUDAバージョンに置き換える
 
 ffmpeg -version   # ffmpeg が利用可能か確認
 ```

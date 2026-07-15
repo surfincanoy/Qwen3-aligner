@@ -58,7 +58,9 @@ Qwen3-aligner 基于通义千问 **Qwen3-ASR** 与 **Qwen3-ForcedAligner** 模�
 uv venv --python 3.12  # 推荐 uv
 
 uv pip install -r requirements.txt  
-uv pip install torch torchauido --index-url https://download.pytorch.org/whl/cu124   #替换为系统中的cuda版本
+
+# ‘cu124’ 替换为系统中的cuda版本   50系显卡使用cu128或以上版本
+uv pip install torch torchauido --index-url https://download.pytorch.org/whl/cu124   
 
 ffmpeg -version   # 确认 ffmpeg 可用
 ```

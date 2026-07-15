@@ -59,7 +59,7 @@ uv venv --python 3.12   # uv recommended
 
 uv pip install -r requirements.txt 
 
-uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124  #Replace with the system's CUDA version
+uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124  # ‘cu124’ Replace with the system's CUDA version
 
 ffmpeg -version   # verify ffmpeg is available
 ```
