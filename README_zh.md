@@ -60,7 +60,7 @@ uv venv --python 3.12  # 推荐 uv
 uv pip install -r requirements.txt  
 
 # ‘cu124’ 替换为系统中的cuda版本   50系显卡使用cu128或以上版本
-uv pip install torch torchauido --index-url https://download.pytorch.org/whl/cu124   
+uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124   
 
 ffmpeg -version   # 确认 ffmpeg 可用
 ```
